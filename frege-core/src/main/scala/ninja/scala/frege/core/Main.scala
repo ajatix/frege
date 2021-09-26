@@ -1,11 +1,7 @@
 package ninja.scala.frege.core
 
 import ninja.scala.frege._
-import ninja.scala.frege.core.engine.{
-  EvaluationContext,
-  GraphEvaluator,
-  StandardEvaluator
-}
+import ninja.scala.frege.core.engine._
 import ninja.scala.frege.syntax._
 
 case class SimpleRequest(
@@ -57,6 +53,8 @@ object Context {
 object Main extends App {
 
   implicit val ctx: EvaluationContext = EvaluationContext(Context.rules)
+  implicit val gtx: GraphEvaluationContext =
+    new GraphEvaluationContextBuilder().build()
   val standardEvaluator = new StandardEvaluator()
   val graphEvaluator = new GraphEvaluator()
 
