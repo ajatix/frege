@@ -20,7 +20,7 @@ class EvaluatorSpec extends AnyFlatSpec with Matchers {
   val ruleGenerator = new RuleGenerator(0.3)
 
   val (rules, negativeRules) = ruleGenerator.generate(10)
-  val requests: Seq[Request] = requestGenerator.generate(2)
+  val requests: Seq[Request] = requestGenerator.generate(10)
 
   implicit val ctx: EvaluationContext =
     EvaluationContext(rules, negativeRules)
@@ -45,12 +45,16 @@ class EvaluatorSpec extends AnyFlatSpec with Matchers {
 
   it should "compute standard" in {
     val standardResponse =
-      requests.map(standardEvaluator.eval).flatMap(_.applicable).toSet
+      requests
+        .map(request => request -> standardEvaluator.eval(request).applicable)
+        .toMap
     val graphResponse =
-      requests.map(graphEvaluator.eval).flatMap(_.applicable).toSet
+      requests
+        .map(request => request -> graphEvaluator.eval(request).applicable)
+        .toMap
 
-    info(standardResponse.toString)
-    info(graphResponse.toString)
+    info(s"[standard response] ${standardResponse}")
+    info(s"[graph response] ${graphResponse}")
 
     standardResponse shouldEqual graphResponse
   }

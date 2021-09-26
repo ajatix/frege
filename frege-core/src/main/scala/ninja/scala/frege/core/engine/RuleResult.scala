@@ -5,41 +5,42 @@ import ninja.scala.frege.Id
 import scala.collection.mutable
 
 class RuleResult {
-  private val positive: mutable.HashMap[Id, Int] = mutable.HashMap.empty
-  private val negative: mutable.HashMap[Id, Int] = mutable.HashMap.empty
+  protected val positive: mutable.HashMap[Id, Float] = mutable.HashMap.empty
+  protected val negative: mutable.HashMap[Id, Float] = mutable.HashMap.empty
 
   def add(that: RuleResult): Unit = {
-    that.getPositive.foreach(addPositive)
-    that.getNegative.foreach(addNegative)
-  }
-
-  def addPositive(id: Id): Unit = {
-    val count = positive.getOrElseUpdate(id, 0)
-    positive.update(id, count + 1)
-  }
-
-  def addNegative(id: Id): Unit = {
-    val count = negative.getOrElseUpdate(id, 0)
-    negative.update(id, count + 1)
-  }
-
-  def getPositive: Set[Int] = positive.keys.toSet
-
-  def filterPositive(rules: Map[Id, Int]): Set[Int] = positive
-    .filter { case (id, target) =>
-      rules.get(id).contains(target)
+    that.positive.foreach { case (id, weight) =>
+      addPositive(id, weight)
     }
+    that.negative.foreach { case (id, weight) =>
+      addNegative(id, weight)
+    }
+  }
+
+  def addPositive(id: Id, weight: Float = 1.0f): Unit = {
+    val count = positive.getOrElseUpdate(id, 0.0f)
+    positive.update(id, count + weight)
+  }
+
+  def addNegative(id: Id, weight: Float = 1.0f): Unit = {
+    val count = negative.getOrElseUpdate(id, 0.0f)
+    negative.update(id, count + weight)
+  }
+
+  def getPositive: Set[Int] = positive
+    .filter { case (_, weight) => weight >= 0.99 }
     .keys
     .toSet
 
-  def getNegative: Set[Int] = negative.keys.toSet
-
-  def filterNegative(rules: Map[Id, Int]): Set[Int] = negative
-    .filter { case (id, target) =>
-      rules.get(id).contains(target)
-    }
+  def getNegative: Set[Int] = negative
+    .filter { case (_, weight) => weight >= 0.99 }
     .keys
     .toSet
+
+  def getApplicable: Set[Int] = {
+    getPositive.diff(getNegative)
+  }
 
   override def toString: String = s"positive: $positive, negative: $negative"
+
 }

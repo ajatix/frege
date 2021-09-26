@@ -13,9 +13,7 @@ object EvaluationResult {
 
   def apply(
       ruleResult: RuleResult
-  )(implicit ctx: EvaluationContext): EvaluationResult = {
-    val filterPositive = ruleResult.filterPositive(ctx.positiveTargets)
-    val filterNegative = ruleResult.filterNegative(ctx.negativeTargets)
+  ): EvaluationResult = {
     /*
     val positive =
       ruleResult.getPositive.map(id => id -> filterPositive.contains(id)).toMap
@@ -27,7 +25,7 @@ object EvaluationResult {
       )
       .toMap
      */
-    val applicable = filterPositive.diff(filterNegative)
+    val applicable = ruleResult.getApplicable
     EvaluationResult(applicable)
   }
 }

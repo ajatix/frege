@@ -25,7 +25,7 @@ class RuleGenerator(
 object RuleGenerator {
 
   val defaultParams: Gen.Parameters = Gen.Parameters.default.withSize(5)
-  val defaultSeed: Seed = Seed.random()
+  val defaultSeed: Seed = Seed(1L)
 
   def genName(id: Id, prefix: String): Gen[String] = Gen.const(s"$prefix-$id")
   def genFence(feature: String): Gen[Fence] = for {
