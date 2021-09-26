@@ -14,17 +14,6 @@ object EvaluationResult {
   def apply(
       ruleResult: RuleResult
   ): EvaluationResult = {
-    /*
-    val positive =
-      ruleResult.getPositive.map(id => id -> filterPositive.contains(id)).toMap
-    val negative =
-      ruleResult.getNegative.map(id => id -> filterNegative.contains(id)).toMap
-    val ruleMap = ctx.rules.keys
-      .map(id =>
-        id -> (filterPositive.contains(id) && !filterNegative.contains(id))
-      )
-      .toMap
-     */
     val applicable = ruleResult.getApplicable
     EvaluationResult(applicable)
   }

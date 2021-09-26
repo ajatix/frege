@@ -37,14 +37,14 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
         }
         graph.put(feature.name, featureGraph)
       }
-      negative.foreach { case SimpleRule(_, _, _, positive, _) =>
+      negative.foreach { case SimpleRule(id, _, _, positive, _) =>
         val negativeSegmentWeightage = 1.0f / positive.size
         positive.foreach { case Segment(_, feature, fences) =>
           val featureGraph = graph.getOrDefault(feature.name, fieldMap())
           fences.foreach { fence =>
             val fenceRuleResult =
               featureGraph.getOrDefault(fence.v, new RuleResult())
-            fenceRuleResult.addNegative(ruleId, negativeSegmentWeightage)
+            fenceRuleResult.addNegative(id, ruleId, negativeSegmentWeightage)
             featureGraph.put(fence.v, fenceRuleResult)
           }
           graph.put(feature.name, featureGraph)
