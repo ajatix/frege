@@ -20,14 +20,10 @@ class GraphEvaluator(implicit
 ) extends Evaluator {
 
   override def eval(request: Request): EvaluationResult = {
-    val ruleResult = gtx.graph
-      .flatMap { case (feature, dimensions) =>
-        request.get(feature).flatMap(dimensions.get)
-      }
-      .foldLeft(new RuleResult) { case (acc, el) =>
-        acc.add(el)
-        acc
-      }
+    val ruleResult = new RuleResult()
+    gtx.graph.forEach((k, v) => {
+      request.get(k).foreach(field => ruleResult.add(v.get(field)))
+    })
     EvaluationResult(ruleResult)
   }
 }

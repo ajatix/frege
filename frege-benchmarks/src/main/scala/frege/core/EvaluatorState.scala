@@ -30,7 +30,12 @@ class EvaluatorState {
   val standardEvaluator = new StandardEvaluator()
   val graphEvaluator = new GraphEvaluator()
 
-  gtx.graph.foreach(println)
+  gtx.graph.forEach((feature, dimensions) => {
+    println(feature)
+    dimensions.forEach((dimension, ruleResult) => {
+      println(dimension, ruleResult)
+    })
+  })
   println(gtx.metadata)
 
   val requests: Seq[Request] = Seq(
