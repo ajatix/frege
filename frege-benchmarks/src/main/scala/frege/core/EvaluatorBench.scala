@@ -9,7 +9,7 @@ import org.openjdk.jmh.annotations.{
 
 import java.util.concurrent.TimeUnit
 
-@OutputTimeUnit(TimeUnit.MICROSECONDS)
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
 class EvaluatorBench {
 
   @Benchmark

@@ -9,7 +9,7 @@ import org.openjdk.jmh.annotations.{Scope, State}
 class EvaluatorState {
 
   val ruleGenerator = new RuleGenerator(0.3)
-  val (rules, negativeRules) = ruleGenerator.generate(10)
+  val (rules, negativeRules) = ruleGenerator.generate(100)
 
   implicit val ctx: EvaluationContext =
     EvaluationContext(rules, negativeRules)
@@ -18,14 +18,6 @@ class EvaluatorState {
   val standardEvaluator = new StandardEvaluator()
   val graphEvaluator = new GraphEvaluator()
 
-  gtx.graph.forEach((feature, dimensions) => {
-    println(feature)
-    dimensions.forEach((dimension, ruleResult) => {
-      println(dimension, ruleResult)
-    })
-  })
-  println(gtx.metadata)
-
   val requestGenerator = new RequestGenerator()
-  val requests: Seq[Request] = requestGenerator.generate(10)
+  val requests: Seq[Request] = requestGenerator.generate(1000)
 }
