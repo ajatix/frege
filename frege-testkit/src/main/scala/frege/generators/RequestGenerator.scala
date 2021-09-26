@@ -26,16 +26,25 @@ class RequestGenerator(
     seed: Seed = Seed.random()
 ) extends Generator[Seq[Request]] {
 
-  implicit val generator: Gen[Request] = for {
+  def generate(num: Int): Seq[Request] = {
+    Gen.listOfN(num, RequestGenerator.generator).pureApply(params, seed)
+  }
+
+}
+
+object RequestGenerator {
+
+  val generator: Gen[Request] = for {
     origin <- Gen.oneOf("TH", "IN", "US")
     payment <- Gen.oneOf(1, 2, 3)
     loggedIn <- Gen.oneOf(true, false)
     traffic <- Gen.oneOf("direct", "mse")
     cid <- Gen.oneOf(1, 2, 3, 4, 5)
-  } yield SimpleRequest(origin, payment, loggedIn, traffic, cid)
-
-  def generate(num: Int): Seq[Request] = {
-    Gen.listOfN(num, generator).pureApply(params, seed)
-  }
-
+  } yield SimpleRequest(
+    origin = origin,
+    payment = payment,
+    loggedIn = loggedIn,
+    traffic = traffic,
+    cid = cid
+  )
 }
