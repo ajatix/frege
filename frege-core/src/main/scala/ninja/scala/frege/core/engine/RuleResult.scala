@@ -8,6 +8,11 @@ class RuleResult {
   private val positive: mutable.HashMap[Id, Int] = mutable.HashMap.empty
   private val negative: mutable.HashMap[Id, Int] = mutable.HashMap.empty
 
+  def add(that: RuleResult): Unit = {
+    that.getPositive.foreach(addPositive)
+    that.getNegative.foreach(addNegative)
+  }
+
   def addPositive(id: Id): Unit = {
     val count = positive.getOrElseUpdate(id, 0)
     positive.update(id, count + 1)
