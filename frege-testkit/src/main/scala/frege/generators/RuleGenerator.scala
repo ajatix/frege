@@ -6,8 +6,8 @@ import org.scalacheck.rng.Seed
 
 class RuleGenerator(
     fraction: Double,
-    params: Gen.Parameters = Gen.Parameters.default,
-    seed: Seed = Seed.random()
+    params: Gen.Parameters = RuleGenerator.defaultParams,
+    seed: Seed = RuleGenerator.defaultSeed
 ) extends Generator[(Map[Id, Rule], Map[Id, Rule])] {
 
   override def generate(num: Id): (Map[Id, Rule], Map[Id, Rule]) = {
@@ -23,6 +23,10 @@ class RuleGenerator(
 }
 
 object RuleGenerator {
+
+  val defaultParams: Gen.Parameters = Gen.Parameters.default.withSize(5)
+  val defaultSeed: Seed = Seed(42L)
+
   def genName(id: Id, prefix: String): Gen[String] = Gen.const(s"$prefix-$id")
   def genFence(feature: String): Gen[Fence] = for {
     request <- RequestGenerator.generator
@@ -34,12 +38,16 @@ object RuleGenerator {
   } yield Segment(id = id, feature = Feature(id, feature), fences = fences)
   def negativeGenerator(id: Id): Gen[Rule] = for {
     name <- genName(id, "block")
-    positive <- Gen.nonEmptyListOf(genSegment(id)).map(_.toSet)
+    positive <- Gen
+      .nonEmptyListOf(genSegment(id))
+      .map(l => l.groupBy(_.feature.name).mapValues(_.head).values.toSet)
   } yield SimpleRule(id = id, name = name, action = Skip, positive = positive)
   def positiveGenerator(id: Id, negative: Set[Rule]): Gen[Rule] = for {
-    name <- genName(id, "block")
-    action <- Gen.choose(-10.0, 10.0)
-    positive <- Gen.nonEmptyListOf(genSegment(id)).map(_.toSet)
+    name <- genName(id, "allow")
+    action <- Gen.choose(-5, 5)
+    positive <- Gen
+      .nonEmptyListOf(genSegment(id))
+      .map(l => l.groupBy(_.feature.name).mapValues(_.head).values.toSet)
     negative <- Gen.someOf(negative).map(_.toSet)
   } yield SimpleRule(
     id = id,

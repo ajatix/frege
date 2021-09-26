@@ -8,7 +8,7 @@ import org.openjdk.jmh.annotations.{Scope, State}
 @State(Scope.Benchmark)
 class EvaluatorState {
 
-  val ruleGenerator = new RuleGenerator(0.7)
+  val ruleGenerator = new RuleGenerator(0.3)
   val (rules, negativeRules) = ruleGenerator.generate(10)
 
   implicit val ctx: EvaluationContext =
