@@ -1,0 +1,8 @@
+# IDE
+.bsp
+.idea
+
+# Scala
+target
+project/project
+project/target
