@@ -14,6 +14,11 @@ lazy val core = project
   .in(file("frege-core"))
   .dependsOn(models, commons)
   .aggregate(models, commons)
+  .settings(
+    libraryDependencies ++= Seq(
+      "it.unimi.dsi" % "fastutil" % "8.5.6"
+    )
+  )
 
 lazy val client =
   project.in(file("frege-client")).dependsOn(core).aggregate(core)
