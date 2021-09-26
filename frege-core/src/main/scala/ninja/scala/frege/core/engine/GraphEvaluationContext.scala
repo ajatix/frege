@@ -4,7 +4,15 @@ import ninja.scala.frege._
 
 import scala.collection.mutable
 
-case class GraphEvaluationContext(graph: Map[String, Map[Field, RuleResult]])
+case class GraphMetadata(
+    numFeatures: Int,
+    dimensions: Map[String, Int],
+    rules: Map[String, Int]
+)
+case class GraphEvaluationContext(
+    graph: Map[String, Map[Field, RuleResult]],
+    metadata: GraphMetadata
+)
 
 class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
 
@@ -43,7 +51,19 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
 
   def build(): GraphEvaluationContext = {
     addRules(ctx.rules)
-    GraphEvaluationContext(graph.mapValues(_.toMap).toMap)
+    val graphMetadata = GraphMetadata(
+      numFeatures = graph.size,
+      dimensions = graph.mapValues(f => f.size).toMap,
+      rules = graph.mapValues { f =>
+        val sum = f.foldLeft(new RuleResult) { case (acc, (_, el)) =>
+          el.getPositive.foreach(acc.addPositive)
+          el.getNegative.foreach(acc.addNegative)
+          acc
+        }
+        sum.getPositive.size + sum.getNegative.size
+      }.toMap
+    )
+    GraphEvaluationContext(graph.mapValues(_.toMap).toMap, graphMetadata)
   }
 
 }

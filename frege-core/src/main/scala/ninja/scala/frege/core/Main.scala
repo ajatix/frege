@@ -58,6 +58,9 @@ object Main extends App {
   val standardEvaluator = new StandardEvaluator()
   val graphEvaluator = new GraphEvaluator()
 
+  println("graph metadata")
+  println(gtx.metadata)
+
   def runner(request: SimpleRequest): Unit = {
     println("request")
     println(request)

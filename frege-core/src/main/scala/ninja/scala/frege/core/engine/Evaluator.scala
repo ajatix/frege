@@ -19,10 +19,10 @@ class GraphEvaluator(implicit gtx: GraphEvaluationContext) extends Evaluator {
       .flatMap { case (feature, dimensions) =>
         request.get(feature).flatMap(dimensions.get)
       }
-      .foldLeft(new RuleResult) { case (x, y) =>
-        y.getPositive.foreach(x.addPositive)
-        y.getNegative.foreach(x.addNegative)
-        x
+      .foldLeft(new RuleResult) { case (acc, el) =>
+        el.getPositive.foreach(acc.addPositive)
+        el.getNegative.foreach(acc.addNegative)
+        acc
       }
     EvaluationResult(ruleResult)
   }
