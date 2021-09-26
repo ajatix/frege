@@ -6,6 +6,7 @@ package object frege {
 
   type Id = Int
   type Name = String
+  type Percent = Double
 
   trait HasId {
     def id: Id
@@ -13,6 +14,10 @@ package object frege {
 
   trait HasName {
     def name: Name
+  }
+
+  trait HasPercent {
+    def percent: Double
   }
 
   object syntax {
