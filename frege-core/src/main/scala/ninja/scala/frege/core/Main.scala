@@ -1,28 +1,12 @@
 package ninja.scala.frege.core
 
-import ninja.scala.frege.syntax._
 import ninja.scala.frege._
-
-import scala.collection.mutable
-
-class RuleMeta {
-  private val positive: mutable.HashSet[Int] = mutable.HashSet.empty
-  private val negative: mutable.HashSet[Int] = mutable.HashSet.empty
-
-  def addPositive(id: Id): Unit = {
-    positive.add(id)
-  }
-
-  def addNegative(id: Id): Unit = {
-    negative.add(id)
-  }
-
-  def getPositive: Set[Int] = positive.toSet
-
-  def getNegative: Set[Int] = negative.toSet
-
-  override def toString: Name = s"positive: $positive, negative: $negative"
+import ninja.scala.frege.core.engine.{
+  EvaluationContext,
+  GraphEvaluator,
+  StandardEvaluator
 }
+import ninja.scala.frege.syntax._
 
 case class SimpleRequest(
     origin: String,
@@ -38,9 +22,8 @@ case class SimpleRequest(
   }
 }
 
-object Main extends App {
+object Context {
 
-  println("rules")
   val negativeRules = Map(
     1 ->
       SimpleRule(
@@ -69,67 +52,23 @@ object Main extends App {
       negative = Set(negativeRules(1))
     )
   )
-  println(rules)
+}
 
-  val graph = mutable.HashMap.empty[String, mutable.HashMap[Field, RuleMeta]]
-  rules.foreach { case (ruleId, SimpleRule(_, _, _, positive, negative)) =>
-    positive.foreach { case Segment(_, feature, fences) =>
-      if (!graph.contains(feature.name))
-        graph.put(feature.name, mutable.HashMap.empty[Field, RuleMeta])
-      graph.get(feature.name) match {
-        case Some(featureGraph) =>
-          fences.foreach { fence =>
-            if (!featureGraph.contains(fence.v))
-              featureGraph.put(fence.v, new RuleMeta)
-            featureGraph.get(fence.v) match {
-              case Some(ruleMeta) => ruleMeta.addPositive(ruleId)
-            }
-          }
-      }
-    }
-    negative.foreach { case SimpleRule(_, _, _, positive, _) =>
-      positive.foreach { case Segment(_, feature, fences) =>
-        if (!graph.contains(feature.name))
-          graph.put(feature.name, mutable.HashMap.empty[Field, RuleMeta])
-        graph.get(feature.name) match {
-          case Some(featureGraph) =>
-            fences.foreach { fence =>
-              if (!featureGraph.contains(fence.v))
-                featureGraph.put(fence.v, new RuleMeta)
-              featureGraph.get(fence.v) match {
-                case Some(ruleMeta) => ruleMeta.addNegative(ruleId)
-              }
-            }
-        }
-      }
-    }
-  }
-  println(graph)
+object Main extends App {
+
+  implicit val ctx: EvaluationContext = EvaluationContext(Context.rules)
+  val standardEvaluator = new StandardEvaluator()
+  val graphEvaluator = new GraphEvaluator()
 
   def runner(request: SimpleRequest): Unit = {
     println("request")
     println(request)
 
-    println("response")
-    val response = rules.mapValues(_.eval(request))
-    println(response)
+    println("standard response")
+    println(standardEvaluator.eval(request))
 
     println("graph response")
-    val graphEvaluation = graph
-      .flatMap { case (feature, dimensions) =>
-        request.get(feature) match {
-          case Some(field) => dimensions.get(field)
-        }
-      }
-      .reduce[RuleMeta] { case (x: RuleMeta, y: RuleMeta) =>
-        x.getPositive.foreach(y.addPositive)
-        x.getNegative.foreach(y.addNegative)
-        y
-      }
-    val graphResponse = graphEvaluation.getPositive
-      .map(id => id -> !graphEvaluation.getNegative.contains(id))
-      .toMap
-    println(graphResponse)
+    println(graphEvaluator.eval(request))
   }
 
   runner(
