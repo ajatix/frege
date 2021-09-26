@@ -17,3 +17,10 @@ lazy val core = project
 
 lazy val client =
   project.in(file("frege-client")).dependsOn(core).aggregate(core)
+
+lazy val benchmarks =
+  project
+    .in(file("frege-benchmarks"))
+    .dependsOn(core)
+    .aggregate(core)
+    .enablePlugins(JmhPlugin)

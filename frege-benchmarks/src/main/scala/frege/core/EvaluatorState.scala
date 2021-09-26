@@ -1,8 +1,56 @@
-package ninja.scala.frege.core
+package frege.core
 
-import ninja.scala.frege._
-import ninja.scala.frege.core.engine._
+import ninja.scala.frege.core.engine.{
+  EvaluationContext,
+  GraphEvaluationContext,
+  GraphEvaluationContextBuilder,
+  GraphEvaluator,
+  StandardEvaluator
+}
+import ninja.scala.frege.{
+  Feature,
+  Fence,
+  Field,
+  Lift,
+  Request,
+  Segment,
+  SimpleRule,
+  Skip
+}
+import org.openjdk.jmh.annotations.{Scope, State}
 import ninja.scala.frege.syntax._
+
+@State(Scope.Benchmark)
+class EvaluatorState {
+
+  implicit val ctx: EvaluationContext =
+    EvaluationContext(Context.rules, Context.negativeRules)
+  implicit val gtx: GraphEvaluationContext =
+    new GraphEvaluationContextBuilder().build()
+  val standardEvaluator = new StandardEvaluator()
+  val graphEvaluator = new GraphEvaluator()
+
+  gtx.graph.foreach(println)
+  println(gtx.metadata)
+
+  val requests: Seq[Request] = Seq(
+    SimpleRequest(
+      origin = "TH",
+      payment = 2,
+      loggedIn = true,
+      traffic = "direct",
+      cid = 1
+    ),
+    SimpleRequest(
+      origin = "TH",
+      payment = 1,
+      loggedIn = true,
+      traffic = "direct",
+      cid = 2
+    )
+  )
+
+}
 
 case class SimpleRequest(
     origin: String,
@@ -118,60 +166,36 @@ object Context {
         Segment(1, feature = Feature(1, "traffic"), fences = Set(Fence("mse")))
       ),
       negative = Set(negativeRules(2))
+    ),
+    5 -> SimpleRule(
+      5,
+      "FREGE-5",
+      Lift(0.1),
+      positive = Set(
+        Segment(1, feature = Feature(1, "cid"), fences = Set(Fence(1))),
+        Segment(1, feature = Feature(1, "traffic"), fences = Set(Fence("mse")))
+      ),
+      negative = Set(negativeRules(2))
+    ),
+    6 -> SimpleRule(
+      6,
+      "FREGE-6",
+      Lift(-0.2),
+      positive = Set(
+        Segment(1, feature = Feature(1, "cid"), fences = Set(Fence(1))),
+        Segment(1, feature = Feature(1, "traffic"), fences = Set(Fence("mse")))
+      ),
+      negative = Set(negativeRules(2))
+    ),
+    7 -> SimpleRule(
+      7,
+      "FREGE-7",
+      Lift(1.3),
+      positive = Set(
+        Segment(1, feature = Feature(1, "cid"), fences = Set(Fence(1))),
+        Segment(1, feature = Feature(1, "traffic"), fences = Set(Fence("mse")))
+      ),
+      negative = Set(negativeRules(2))
     )
   )
-}
-
-object Main extends App {
-
-  implicit val ctx: EvaluationContext =
-    EvaluationContext(Context.rules, Context.negativeRules)
-  implicit val gtx: GraphEvaluationContext =
-    new GraphEvaluationContextBuilder().build()
-  val standardEvaluator = new StandardEvaluator()
-  val graphEvaluator = new GraphEvaluator()
-
-  def runner(request: SimpleRequest): Unit = {
-    val standardResponse = standardEvaluator.eval(request)
-    val graphResponse = graphEvaluator.eval(request)
-
-    assert(
-      standardResponse.ruleMap == graphResponse.ruleMap,
-      s"""[rules]
-         |${ctx.rules.mkString("\n")}
-         |[targets]
-         |${ctx.rules.mapValues(_.applicable.size).mkString("\n")}
-         |[graph]
-         |${gtx.graph.mkString("\n")}
-         |[metadata]
-         |${gtx.metadata}
-         |[request]
-         |$request
-         |[standard response]
-         |$standardResponse
-         |[graph response]
-         |$graphResponse""".stripMargin
-    )
-  }
-
-  runner(
-    SimpleRequest(
-      origin = "TH",
-      payment = 2,
-      loggedIn = true,
-      traffic = "direct",
-      cid = 1
-    )
-  )
-
-  runner(
-    SimpleRequest(
-      origin = "TH",
-      payment = 1,
-      loggedIn = true,
-      traffic = "direct",
-      cid = 2
-    )
-  )
-
 }
