@@ -117,31 +117,41 @@ object Context {
         Segment(1, feature = Feature(1, "cid"), fences = Set(Fence(1))),
         Segment(1, feature = Feature(1, "traffic"), fences = Set(Fence("mse")))
       ),
-      negative = Set(negativeRules(1))
+      negative = Set(negativeRules(2))
     )
   )
 }
 
 object Main extends App {
 
-  implicit val ctx: EvaluationContext = EvaluationContext(Context.rules)
+  implicit val ctx: EvaluationContext =
+    EvaluationContext(Context.rules, Context.negativeRules)
   implicit val gtx: GraphEvaluationContext =
     new GraphEvaluationContextBuilder().build()
   val standardEvaluator = new StandardEvaluator()
   val graphEvaluator = new GraphEvaluator()
 
-  println("graph metadata")
-  println(gtx.metadata)
-
   def runner(request: SimpleRequest): Unit = {
-    println("request")
-    println(request)
+    val standardResponse = standardEvaluator.eval(request)
+    val graphResponse = graphEvaluator.eval(request)
 
-    println("standard response")
-    println(standardEvaluator.eval(request))
-
-    println("graph response")
-    println(graphEvaluator.eval(request))
+    assert(
+      standardResponse.ruleMap == graphResponse.ruleMap,
+      s"""[rules]
+         |${ctx.rules.mkString("\n")}
+         |[targets]
+         |${ctx.rules.mapValues(_.applicable.size).mkString("\n")}
+         |[graph]
+         |${gtx.graph.mkString("\n")}
+         |[metadata]
+         |${gtx.metadata}
+         |[request]
+         |$request
+         |[standard response]
+         |$standardResponse
+         |[graph response]
+         |$graphResponse""".stripMargin
+    )
   }
 
   runner(

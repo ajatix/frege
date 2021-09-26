@@ -12,7 +12,10 @@ class StandardEvaluator(implicit ctx: EvaluationContext) extends Evaluator {
   }
 }
 
-class GraphEvaluator(implicit gtx: GraphEvaluationContext) extends Evaluator {
+class GraphEvaluator(implicit
+    ctx: EvaluationContext,
+    gtx: GraphEvaluationContext
+) extends Evaluator {
 
   override def eval(request: Request): EvaluationResult = {
     val ruleResult = gtx.graph

@@ -5,20 +5,36 @@ import ninja.scala.frege.Id
 import scala.collection.mutable
 
 class RuleResult {
-  private val positive: mutable.HashSet[Int] = mutable.HashSet.empty
-  private val negative: mutable.HashSet[Int] = mutable.HashSet.empty
+  private val positive: mutable.HashMap[Id, Int] = mutable.HashMap.empty
+  private val negative: mutable.HashMap[Id, Int] = mutable.HashMap.empty
 
   def addPositive(id: Id): Unit = {
-    positive.add(id)
+    val count = positive.getOrElseUpdate(id, 0)
+    positive.update(id, count + 1)
   }
 
   def addNegative(id: Id): Unit = {
-    negative.add(id)
+    val count = negative.getOrElseUpdate(id, 0)
+    negative.update(id, count + 1)
   }
 
-  def getPositive: Set[Int] = positive.toSet
+  def getPositive: Set[Int] = positive.keys.toSet
 
-  def getNegative: Set[Int] = negative.toSet
+  def filterPositive(rules: Map[Id, Int]): Set[Int] = positive
+    .filter { case (id, target) =>
+      rules.get(id).contains(target)
+    }
+    .keys
+    .toSet
+
+  def getNegative: Set[Int] = negative.keys.toSet
+
+  def filterNegative(rules: Map[Id, Int]): Set[Int] = negative
+    .filter { case (id, target) =>
+      rules.get(id).contains(target)
+    }
+    .keys
+    .toSet
 
   override def toString: String = s"positive: $positive, negative: $negative"
 }
