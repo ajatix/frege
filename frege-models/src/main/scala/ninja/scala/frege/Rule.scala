@@ -1,6 +1,6 @@
 package ninja.scala.frege
 
-sealed trait Rule extends HasId {
+sealed trait Rule extends HasId with HasName {
   def action: Action
   def applicable: Set[Segment]
 
@@ -9,6 +9,7 @@ sealed trait Rule extends HasId {
 
 final case class SimpleRule(
     id: Id,
+    name: Name,
     action: Action,
     positive: Set[Segment],
     negative: Set[Rule] = Set.empty
