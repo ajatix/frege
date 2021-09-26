@@ -1,5 +1,5 @@
 package ninja.scala.frege.core.engine
 
-class EvaluationContext {
+import ninja.scala.frege.{Id, Rule}
 
-}
+case class EvaluationContext(rules: Map[Id, Rule])

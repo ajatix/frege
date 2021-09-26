@@ -1,5 +1,15 @@
-package ninja.scala.frege.core.evaluators
+package ninja.scala.frege.core.engine
 
-class EvaluationResult {
+import ninja.scala.frege.Id
 
+case class EvaluationResult(ruleMap: Map[Id, Boolean])
+
+object EvaluationResult {
+
+  def apply(ruleResult: RuleResult): EvaluationResult = {
+    val resolveRules = ruleResult.getPositive
+      .map(id => id -> !ruleResult.getNegative.contains(id))
+      .toMap
+    EvaluationResult(resolveRules)
+  }
 }
