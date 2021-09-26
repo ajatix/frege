@@ -22,7 +22,9 @@ class GraphEvaluator(implicit
   override def eval(request: Request): EvaluationResult = {
     val ruleResult = new RuleResult()
     gtx.graph.forEach((k, v) => {
-      request.get(k).foreach(field => ruleResult.add(v.get(field)))
+      request.get(k).foreach { field =>
+        if (v.containsKey(field)) ruleResult.add(v.get(field))
+      }
     })
     EvaluationResult(ruleResult)
   }
