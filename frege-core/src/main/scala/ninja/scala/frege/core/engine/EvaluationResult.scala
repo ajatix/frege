@@ -3,7 +3,8 @@ package ninja.scala.frege.core.engine
 import ninja.scala.frege.Id
 
 case class EvaluationResult(
-    ruleMap: Map[Id, Boolean],
+    applicable: Set[Int],
+    ruleMap: Map[Id, Boolean] = Map.empty,
     positive: Map[Id, Boolean] = Map.empty,
     negative: Map[Id, Boolean] = Map.empty
 )
@@ -15,6 +16,7 @@ object EvaluationResult {
   )(implicit ctx: EvaluationContext): EvaluationResult = {
     val filterPositive = ruleResult.filterPositive(ctx.positiveTargets)
     val filterNegative = ruleResult.filterNegative(ctx.negativeTargets)
+    /*
     val positive =
       ruleResult.getPositive.map(id => id -> filterPositive.contains(id)).toMap
     val negative =
@@ -24,7 +26,8 @@ object EvaluationResult {
         id -> (filterPositive.contains(id) && !filterNegative.contains(id))
       )
       .toMap
-
-    EvaluationResult(ruleMap, positive = positive, negative = negative)
+     */
+    val applicable = filterPositive.diff(filterNegative)
+    EvaluationResult(applicable)
   }
 }

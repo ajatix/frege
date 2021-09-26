@@ -8,7 +8,9 @@ sealed trait Evaluator {
 
 class StandardEvaluator(implicit ctx: EvaluationContext) extends Evaluator {
   override def eval(request: Request): EvaluationResult = {
-    EvaluationResult(ctx.rules.mapValues(_.eval(request)))
+    EvaluationResult(ctx.rules.collect {
+      case (ruleId, rule) if rule.eval(request) => ruleId
+    }.toSet)
   }
 }
 
@@ -23,8 +25,7 @@ class GraphEvaluator(implicit
         request.get(feature).flatMap(dimensions.get)
       }
       .foldLeft(new RuleResult) { case (acc, el) =>
-        el.getPositive.foreach(acc.addPositive)
-        el.getNegative.foreach(acc.addNegative)
+        acc.add(el)
         acc
       }
     EvaluationResult(ruleResult)
