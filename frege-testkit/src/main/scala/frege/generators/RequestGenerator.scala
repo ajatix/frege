@@ -35,7 +35,7 @@ class RequestGenerator(
 object RequestGenerator {
 
   val defaultParams: Gen.Parameters = Gen.Parameters.default.withSize(5)
-  val defaultSeed: Seed = Seed(42L)
+  val defaultSeed: Seed = Seed.random()
 
   val generator: Gen[Request] = for {
     origin <- Gen.oneOf("TH", "IN", "US")

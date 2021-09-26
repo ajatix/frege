@@ -12,10 +12,10 @@ class RuleGenerator(
 
   override def generate(num: Id): (Map[Id, Rule], Map[Id, Rule]) = {
     val split: Int = (num * fraction).toInt
-    val negative = (1 until split)
+    val negative = (1 until split + 1)
       .map(idx => RuleGenerator.negativeGenerator(idx).pureApply(params, seed))
       .toSet
-    val positive = (split to num).map(idx =>
+    val positive = (split + 1 to num).map(idx =>
       RuleGenerator.positiveGenerator(idx, negative).pureApply(params, seed)
     )
     (positive.map(r => r.id -> r).toMap, negative.map(r => r.id -> r).toMap)
@@ -25,7 +25,7 @@ class RuleGenerator(
 object RuleGenerator {
 
   val defaultParams: Gen.Parameters = Gen.Parameters.default.withSize(5)
-  val defaultSeed: Seed = Seed(42L)
+  val defaultSeed: Seed = Seed.random()
 
   def genName(id: Id, prefix: String): Gen[String] = Gen.const(s"$prefix-$id")
   def genFence(feature: String): Gen[Fence] = for {
