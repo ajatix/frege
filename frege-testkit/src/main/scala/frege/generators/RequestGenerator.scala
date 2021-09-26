@@ -22,8 +22,8 @@ case class SimpleRequest(
 }
 
 class RequestGenerator(
-    params: Gen.Parameters = Gen.Parameters.default,
-    seed: Seed = Seed.random()
+    params: Gen.Parameters = RequestGenerator.defaultParams,
+    seed: Seed = RequestGenerator.defaultSeed
 ) extends Generator[Seq[Request]] {
 
   def generate(num: Int): Seq[Request] = {
@@ -33,6 +33,9 @@ class RequestGenerator(
 }
 
 object RequestGenerator {
+
+  val defaultParams: Gen.Parameters = Gen.Parameters.default.withSize(5)
+  val defaultSeed: Seed = Seed(42L)
 
   val generator: Gen[Request] = for {
     origin <- Gen.oneOf("TH", "IN", "US")

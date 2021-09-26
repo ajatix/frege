@@ -24,7 +24,7 @@ lazy val commons = project.in(file("frege-commons"))
 
 lazy val core = project
   .in(file("frege-core"))
-  .dependsOn(models, commons)
+  .dependsOn(models, commons, testkit % "compile->test")
   .aggregate(models, commons)
   .settings(
     libraryDependencies ++= Seq(
