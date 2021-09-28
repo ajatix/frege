@@ -26,26 +26,26 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
 
   def addRules(rules: Map[Id, Rule]): Unit = {
     rules.foreach { case (ruleId, SimpleRule(_, _, _, positive, negative)) =>
-      val positiveTarget = positive.size
+      val positiveTarget = (1 << positive.size) - 1
       positive.zipWithIndex.foreach { case (Segment(_, feature, fences), idx) =>
         val featureGraph = graph.getOrDefault(feature.name, fieldMap())
         fences.foreach { fence =>
           val fenceRuleResult =
             featureGraph.getOrDefault(fence.v, new RuleResult())
-          fenceRuleResult.addPositive(ruleId, idx, positiveTarget)
+          fenceRuleResult.addPositive(ruleId, 1 << idx, positiveTarget)
           featureGraph.put(fence.v, fenceRuleResult)
         }
         graph.put(feature.name, featureGraph)
       }
       negative.foreach { case SimpleRule(id, _, _, positive, _) =>
-        val negativeTarget = positive.size
+        val negativeTarget = (1 << positive.size) - 1
         positive.zipWithIndex.foreach {
           case (Segment(_, feature, fences), idx) =>
             val featureGraph = graph.getOrDefault(feature.name, fieldMap())
             fences.foreach { fence =>
               val fenceRuleResult =
                 featureGraph.getOrDefault(fence.v, new RuleResult())
-              fenceRuleResult.addNegative(id, idx, negativeTarget)
+              fenceRuleResult.addNegative(id, 1 << idx, negativeTarget)
               featureGraph.put(fence.v, fenceRuleResult)
             }
             graph.put(feature.name, featureGraph)

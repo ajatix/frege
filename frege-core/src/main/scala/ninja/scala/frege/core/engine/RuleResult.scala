@@ -11,10 +11,10 @@ import ninja.scala.frege.{Id, SimpleRule}
 import java.util.function.IntConsumer
 
 class RuleResult {
-  protected val positive: Object2ObjectMap[Id, Array[Boolean]] =
-    new Object2ObjectOpenHashMap[Id, Array[Boolean]]()
-  protected val negative: Object2ObjectMap[Id, Array[Boolean]] =
-    new Object2ObjectOpenHashMap[Id, Array[Boolean]]()
+  protected val positive: Object2ObjectMap[Id, (Int, Int)] =
+    new Object2ObjectOpenHashMap[Id, (Int, Int)]()
+  protected val negative: Object2ObjectMap[Id, (Int, Int)] =
+    new Object2ObjectOpenHashMap[Id, (Int, Int)]()
 
   /*
   0 0 0 1 1
@@ -24,66 +24,44 @@ class RuleResult {
   1 1 1 1
    */
   def add(that: RuleResult): Unit = {
-    that.positive.forEach { (id, bits) =>
-      if (bits.nonEmpty) {
-        val accBits = this.positive.getOrDefault(id, Array.empty)
-        if (accBits.nonEmpty)
-          addPositive(
-            id,
-            accBits.zip(bits).map { case (x, y) =>
-              x || y
-            }
-          )
-        else addPositive(id, bits)
+    that.positive.forEach { case (id, (newIdx, target)) =>
+      if (newIdx != target) {
+        if (this.positive.containsKey(id)) {
+          val (seenIdx, _) = this.positive.get(id)
+          addPositive(id, newIdx | seenIdx, target)
+        } else addPositive(id, newIdx, target)
       }
     }
-    that.negative.forEach { (id, bits) =>
-      if (bits.nonEmpty) {
-        val accBits = this.negative.getOrDefault(id, Array.empty)
-        if (accBits.nonEmpty)
-          addNegative(
-            id,
-            accBits.zip(bits).map { case (x, y) =>
-              x || y
-            }
-          )
-        else addNegative(id, bits)
+    that.negative.forEach { case (id, (newIdx, target)) =>
+      if (newIdx != target) {
+        if (this.negative.containsKey(id)) {
+          val (seenIdx, _) = this.negative.get(id)
+          addNegative(id, newIdx | seenIdx, target)
+        } else addNegative(id, newIdx, target)
       }
     }
   }
 
   def addPositive(id: Id, index: Int = 0, target: Int = 1): Unit = {
-    val bits = BooleanArrays.ensureCapacity(BooleanArrays.EMPTY_ARRAY, target)
-    bits(index) = true
-    addPositive(id, bits)
-  }
-
-  def addPositive(id: Id, bits: Array[Boolean]): Unit = {
-    positive.put(id, bits)
+    positive.put(id, (index, target))
   }
 
   def addNegative(id: Id, index: Int = 0, target: Int = 1): Unit = {
-    val bits = BooleanArrays.ensureCapacity(BooleanArrays.EMPTY_ARRAY, target)
-    bits(index) = true
-    addNegative(id, bits)
-  }
-
-  def addNegative(id: Id, bits: Array[Boolean]): Unit = {
-    negative.put(id, bits)
+    negative.put(id, (index, target))
   }
 
   def getPositive: IntOpenHashSet = {
     val set = new IntOpenHashSet()
-    positive.forEach { (id, bits) =>
-      if (!bits.contains(false)) set.add(id)
+    positive.forEach { case (id, (seen, target)) =>
+      if (seen == target) set.add(id)
     }
     set
   }
 
   def getNegative: IntOpenHashSet = {
     val set = new IntOpenHashSet()
-    negative.forEach { (id, bits) =>
-      if (!bits.contains(false)) set.add(id)
+    negative.forEach { case (id, (seen, target)) =>
+      if (seen == target) set.add(id)
     }
     set
   }
