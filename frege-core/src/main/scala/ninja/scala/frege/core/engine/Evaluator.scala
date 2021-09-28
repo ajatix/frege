@@ -26,6 +26,6 @@ class GraphEvaluator(implicit
         if (v.containsKey(field)) ruleResult.add(v.get(field))
       }
     })
-    EvaluationResult(ruleResult)
+    EvaluationResult(ruleResult.getApplicable)
   }
 }

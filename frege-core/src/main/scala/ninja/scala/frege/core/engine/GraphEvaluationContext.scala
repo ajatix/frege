@@ -26,28 +26,29 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
 
   def addRules(rules: Map[Id, Rule]): Unit = {
     rules.foreach { case (ruleId, SimpleRule(_, _, _, positive, negative)) =>
-      val positiveSegmentWeightage = 1.0f / positive.size
-      positive.foreach { case Segment(_, feature, fences) =>
+      val positiveTarget = positive.size
+      positive.zipWithIndex.foreach { case (Segment(_, feature, fences), idx) =>
         val featureGraph = graph.getOrDefault(feature.name, fieldMap())
         fences.foreach { fence =>
           val fenceRuleResult =
             featureGraph.getOrDefault(fence.v, new RuleResult())
-          fenceRuleResult.addPositive(ruleId, positiveSegmentWeightage)
+          fenceRuleResult.addPositive(ruleId, idx, positiveTarget)
           featureGraph.put(fence.v, fenceRuleResult)
         }
         graph.put(feature.name, featureGraph)
       }
       negative.foreach { case SimpleRule(id, _, _, positive, _) =>
-        val negativeSegmentWeightage = 1.0f / positive.size
-        positive.foreach { case Segment(_, feature, fences) =>
-          val featureGraph = graph.getOrDefault(feature.name, fieldMap())
-          fences.foreach { fence =>
-            val fenceRuleResult =
-              featureGraph.getOrDefault(fence.v, new RuleResult())
-            fenceRuleResult.addNegative(id, ruleId, negativeSegmentWeightage)
-            featureGraph.put(fence.v, fenceRuleResult)
-          }
-          graph.put(feature.name, featureGraph)
+        val negativeTarget = positive.size
+        positive.zipWithIndex.foreach {
+          case (Segment(_, feature, fences), idx) =>
+            val featureGraph = graph.getOrDefault(feature.name, fieldMap())
+            fences.foreach { fence =>
+              val fenceRuleResult =
+                featureGraph.getOrDefault(fence.v, new RuleResult())
+              fenceRuleResult.addNegative(id, idx, negativeTarget)
+              featureGraph.put(fence.v, fenceRuleResult)
+            }
+            graph.put(feature.name, featureGraph)
         }
       }
     }
