@@ -1,5 +1,3 @@
-package ninja.scala
-
 import scala.language.implicitConversions
 
 package object frege {

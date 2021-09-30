@@ -1,11 +1,16 @@
-package ninja.scala.frege.core.engine
+package frege.core.engine
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import frege._
+import it.unimi.dsi.fastutil.ints.{
+  Int2ObjectMap,
+  Int2ObjectMaps,
+  Int2ObjectOpenHashMap
+}
 import it.unimi.dsi.fastutil.objects.{
   Object2ObjectMap,
+  Object2ObjectMaps,
   Object2ObjectOpenHashMap
 }
-import ninja.scala.frege._
 
 case class GraphMetadata(
     numFeatures: Int,
@@ -14,7 +19,7 @@ case class GraphMetadata(
 )
 case class GraphEvaluationContext(
     graph: Object2ObjectMap[String, Object2ObjectMap[Field, RuleResult]],
-    negativeRuleMap: Int2ObjectOpenHashMap[Set[Int]],
+    negativeRuleMap: Int2ObjectMap[Set[Int]],
     metadata: GraphMetadata
 )
 
@@ -39,7 +44,7 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
             featureGraph.getOrDefault(fence.v, new RuleResult())
           fenceRuleResult.addPositive(
             ruleId,
-            new Partial(1 << idx, positiveTarget)
+            Result.partial(1 << idx, positiveTarget)
           )
           featureGraph.put(fence.v, fenceRuleResult)
         }
@@ -57,7 +62,7 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
                 featureGraph.getOrDefault(fence.v, new RuleResult())
               fenceRuleResult.addNegative(
                 id,
-                new Partial(1 << idx, negativeTarget)
+                Result.partial(1 << idx, negativeTarget)
               )
               featureGraph.put(fence.v, fenceRuleResult)
             }
@@ -70,12 +75,37 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
 
   def build(): GraphEvaluationContext = {
     addRules(ctx.rules)
+    val dimensions = Seq.newBuilder[(String, Int)]
+    val rules = Seq.newBuilder[(String, Int)]
+    graph.forEach { (feature, nodes) =>
+      val applicable = Set.newBuilder[Int]
+      dimensions += feature -> nodes.size()
+      nodes.forEach { (_, result) =>
+        applicable ++= result.all()
+      }
+      rules += feature -> applicable.result().size
+    }
     val graphMetadata = GraphMetadata(
-      numFeatures = graph.size,
-      dimensions = Map.empty,
-      rules = Map.empty
+      numFeatures = graph.size(),
+      dimensions = dimensions
+        .result()
+        .sortBy { case (feature, numDimensions) =>
+          (-1 * numDimensions, feature)
+        }
+        .toMap,
+      rules = rules
+        .result()
+        .sortBy { case (feature, numRules) =>
+          (-1 * numRules, feature)
+        }
+        .toMap
     )
-    GraphEvaluationContext(graph, negativeRuleMap, graphMetadata)
+    // make context immutable
+    GraphEvaluationContext(
+      Object2ObjectMaps.synchronize(graph),
+      Int2ObjectMaps.synchronize(negativeRuleMap),
+      graphMetadata
+    )
   }
 
 }

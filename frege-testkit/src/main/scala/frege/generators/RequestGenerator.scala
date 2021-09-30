@@ -1,7 +1,7 @@
 package frege.generators
 
-import ninja.scala.frege.syntax._
-import ninja.scala.frege.{Field, Request}
+import frege.syntax._
+import frege.{Field, Request}
 import org.scalacheck.Gen
 import org.scalacheck.rng.Seed
 
@@ -35,7 +35,7 @@ class RequestGenerator(
 object RequestGenerator {
 
   val defaultParams: Gen.Parameters = Gen.Parameters.default.withSize(5)
-  val defaultSeed: Seed = Seed(1L)
+  val defaultSeed: Seed = Seed.random()
 
   val generator: Gen[Request] = for {
     origin <- Gen.oneOf("TH", "IN", "US")

@@ -1,10 +1,11 @@
-package ninja.scala.frege.core.engine
+package frege.core.engine
 
+import frege.Id
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps
 import it.unimi.dsi.fastutil.objects.{
   Object2ObjectMap,
   Object2ObjectOpenHashMap
 }
-import ninja.scala.frege.Id
 
 import scala.collection.mutable
 
@@ -13,6 +14,18 @@ class RuleResult {
     new Object2ObjectOpenHashMap[Id, Result]()
   protected val negative: Object2ObjectMap[Id, Result] =
     new Object2ObjectOpenHashMap[Id, Result]()
+
+  def all(): Set[Int] = {
+    val pos = Set.newBuilder[Int]
+    val neg = Set.newBuilder[Int]
+    positive.keySet().forEach { id =>
+      pos += id
+    }
+    negative.keySet().forEach { id =>
+      neg += id
+    }
+    pos.result() diff neg.result()
+  }
 
   /*
   0 0 0 1 1
@@ -47,8 +60,8 @@ class RuleResult {
   def getApplicable(implicit gtx: GraphEvaluationContext): EvaluationResult = {
     val applicable: mutable.Builder[Id, Set[Id]] = Set.newBuilder[Id]
     positive.forEach { case (posId, positiveResult) =>
-      val blockedBy = gtx.negativeRuleMap
-        .get(posId)
+      val blockedBy = gtx
+        .negativeRuleMap(posId)
         .collect {
           case negId if negative.containsKey(negId) =>
             negative.get(negId)

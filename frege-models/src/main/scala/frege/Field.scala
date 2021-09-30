@@ -1,4 +1,4 @@
-package ninja.scala.frege
+package frege
 
 sealed trait Field {
   type T

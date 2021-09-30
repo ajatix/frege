@@ -1,4 +1,4 @@
-package ninja.scala.frege
+package frege
 
 sealed trait Rule extends HasId with HasName {
   def action: Action

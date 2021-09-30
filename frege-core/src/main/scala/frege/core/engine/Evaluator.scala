@@ -1,6 +1,9 @@
-package ninja.scala.frege.core.engine
+package frege.core.engine
 
-import ninja.scala.frege.Request
+import frege.{Field, Request}
+import it.unimi.dsi.fastutil.objects.{Object2ObjectMap, Object2ObjectMaps}
+
+import java.util.function.Consumer
 
 sealed trait Evaluator {
   def eval(request: Request): EvaluationResult
@@ -18,11 +21,15 @@ class GraphEvaluator(implicit gtx: GraphEvaluationContext) extends Evaluator {
 
   override def eval(request: Request): EvaluationResult = {
     val ruleResult = new RuleResult()
-    gtx.graph.forEach((k, v) => {
-      request.get(k).foreach { field =>
-        if (v.containsKey(field)) ruleResult.add(v.get(field))
+    val consumer: Consumer[
+      Object2ObjectMap.Entry[String, Object2ObjectMap[Field, RuleResult]]
+    ] = entry => {
+      request.get(entry.getKey).foreach { field =>
+        val fieldMap: Object2ObjectMap[Field, RuleResult] = entry.getValue
+        if (fieldMap.containsKey(field)) ruleResult.add(fieldMap.get(field))
       }
-    })
+    }
+    Object2ObjectMaps.fastForEach(gtx.graph, consumer)
     ruleResult.getApplicable
   }
 }

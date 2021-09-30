@@ -1,6 +1,6 @@
 package frege.generators
 
-import ninja.scala.frege._
+import frege._
 import org.scalacheck.Gen
 import org.scalacheck.rng.Seed
 
@@ -25,7 +25,7 @@ class RuleGenerator(
 object RuleGenerator {
 
   val defaultParams: Gen.Parameters = Gen.Parameters.default.withSize(5)
-  val defaultSeed: Seed = Seed(1L)
+  val defaultSeed: Seed = Seed.random()
 
   def genName(id: Id, prefix: String): Gen[String] = Gen.const(s"$prefix-$id")
   def genFence(feature: String): Gen[Fence] = for {
