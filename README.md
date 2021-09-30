@@ -10,5 +10,6 @@ libraryDependencies ++= Seq(
 
 ### running benchmarks
 ```
-sbt clean benchmarks/"jmh:run -i 1 -wi 1 -f1 -t1 .*EvaluatorBench.*"
+sbt clean benchmarks/"jmh:run -i 3 -wi 3 -f1 -t1 .*EvaluatorBench.*"
 ```
+To see the complete [benchmark results](BENCHMARKS.md)
