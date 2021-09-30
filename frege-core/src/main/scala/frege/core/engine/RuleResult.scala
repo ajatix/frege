@@ -1,12 +1,13 @@
 package frege.core.engine
 
 import frege.Id
-import it.unimi.dsi.fastutil.ints.Int2ObjectMaps
 import it.unimi.dsi.fastutil.objects.{
   Object2ObjectMap,
+  Object2ObjectMaps,
   Object2ObjectOpenHashMap
 }
 
+import java.util.function.Consumer
 import scala.collection.mutable
 
 class RuleResult {
@@ -35,18 +36,26 @@ class RuleResult {
   1 1 1 1
    */
   def add(that: RuleResult): Unit = {
-    that.positive.forEach { case (id, thatResult) =>
-      if (this.positive.containsKey(id)) {
-        val thisResult = this.positive.get(id)
-        addPositive(id, thisResult add thatResult)
-      } else addPositive(id, thatResult)
-    }
-    that.negative.forEach { case (id, thatResult) =>
-      if (this.negative.containsKey(id)) {
-        val thisResult = this.negative.get(id)
-        addNegative(id, thisResult add thatResult)
-      } else addNegative(id, thatResult)
-    }
+    val postiveConsumer: Consumer[Object2ObjectMap.Entry[Id, Result]] = entry =>
+      {
+        val id = entry.getKey
+        val thatResult = entry.getValue
+        if (this.positive.containsKey(id)) {
+          val thisResult = this.positive.get(id)
+          addPositive(id, thisResult add thatResult)
+        } else addPositive(id, thatResult)
+      }
+    Object2ObjectMaps.fastForEach(that.positive, postiveConsumer)
+    val negativeConsumer: Consumer[Object2ObjectMap.Entry[Id, Result]] =
+      entry => {
+        val id = entry.getKey
+        val thatResult = entry.getValue
+        if (this.negative.containsKey(id)) {
+          val thisResult = this.negative.get(id)
+          addNegative(id, thisResult add thatResult)
+        } else addNegative(id, thatResult)
+      }
+    Object2ObjectMaps.fastForEach(that.negative, negativeConsumer)
   }
 
   def addPositive(id: Id, result: Result): Unit = {
@@ -59,7 +68,9 @@ class RuleResult {
 
   def getApplicable(implicit gtx: GraphEvaluationContext): EvaluationResult = {
     val applicable: mutable.Builder[Id, Set[Id]] = Set.newBuilder[Id]
-    positive.forEach { case (posId, positiveResult) =>
+    val consumer: Consumer[Object2ObjectMap.Entry[Id, Result]] = entry => {
+      val posId = entry.getKey
+      val positiveResult = entry.getValue
       val blockedBy = gtx
         .negativeRuleMap(posId)
         .collect {
@@ -67,9 +78,10 @@ class RuleResult {
             negative.get(negId)
         }
         .reduceOption(Result.semigroup.combine)
-      if (!blockedBy.exists(_.isFail) && positiveResult.isPass)
+      if (!blockedBy.exists(_.isPass) && positiveResult.isPass)
         applicable += posId
     }
+    Object2ObjectMaps.fastForEach(positive, consumer)
     EvaluationResult(applicable.result())
   }
 
