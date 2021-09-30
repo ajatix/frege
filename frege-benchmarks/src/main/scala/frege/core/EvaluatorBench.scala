@@ -15,13 +15,13 @@ class EvaluatorBench {
   @Benchmark
   @BenchmarkMode(Array(Mode.SingleShotTime))
   def standardEvaluatorSingle(state: EvaluatorState): Unit = {
-    state.requests.map(state.standardEvaluator.eval).foreach(println)
+    state.requests.map(state.standardEvaluator.eval)
   }
 
   @Benchmark
   @BenchmarkMode(Array(Mode.SingleShotTime))
   def graphEvaluatorSingle(state: EvaluatorState): Unit = {
-    state.requests.map(state.graphEvaluator.eval).foreach(println)
+    state.requests.map(state.graphEvaluator.eval)
   }
 
   @Benchmark
