@@ -1,7 +1,7 @@
 package frege.core
 
 import frege.generators.{RequestGenerator, RuleGenerator}
-import frege.Request
+import frege.{Request, SimpleRule}
 import frege.core.engine._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -15,8 +15,8 @@ class EvaluatorSpec extends AnyFlatSpec with Matchers {
   val requestGenerator = new RequestGenerator()
   val ruleGenerator = new RuleGenerator(0.3)
 
-  val (rules, negativeRules) = ruleGenerator.generate(5)
-  val requests: Seq[Request] = requestGenerator.generate(1)
+  val (rules, negativeRules) = ruleGenerator.generate(2)
+  val requests: Seq[Request] = requestGenerator.generate(2)
 
   implicit val ctx: EvaluationContext =
     EvaluationContext(rules, negativeRules)
@@ -26,8 +26,21 @@ class EvaluatorSpec extends AnyFlatSpec with Matchers {
   val graphEvaluator = new GraphEvaluator()
 
   if (debug) {
+    println("[negative rules]")
+    negativeRules.foreach { case (ruleId, rule) =>
+      println(s"$ruleId, ${rule.name}, ${rule.action}")
+      println("applicable")
+      rule.applicable.foreach(println)
+    }
+
     println("[rules]")
-    rules.foreach(println)
+    rules.foreach { case (ruleId, rule: SimpleRule) =>
+      println(s"$ruleId, ${rule.name}, ${rule.action}")
+      println("positive")
+      rule.positive.foreach(println)
+      println("negative")
+      println(rule.negative.map(_.name))
+    }
 
     println("[graph]")
     gtx.graph.forEach { (feature, nodes) =>
