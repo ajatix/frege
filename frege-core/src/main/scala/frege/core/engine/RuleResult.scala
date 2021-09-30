@@ -1,6 +1,7 @@
 package frege.core.engine
 
 import frege.Id
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps
 import it.unimi.dsi.fastutil.objects.{
   Object2ObjectMap,
   Object2ObjectOpenHashMap
@@ -59,8 +60,8 @@ class RuleResult {
   def getApplicable(implicit gtx: GraphEvaluationContext): EvaluationResult = {
     val applicable: mutable.Builder[Id, Set[Id]] = Set.newBuilder[Id]
     positive.forEach { case (posId, positiveResult) =>
-      val blockedBy = gtx.negativeRuleMap
-        .get(posId)
+      val blockedBy = gtx
+        .negativeRuleMap(posId)
         .collect {
           case negId if negative.containsKey(negId) =>
             negative.get(negId)

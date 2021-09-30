@@ -15,8 +15,8 @@ class EvaluatorSpec extends AnyFlatSpec with Matchers {
   val requestGenerator = new RequestGenerator()
   val ruleGenerator = new RuleGenerator(0.3)
 
-  val (rules, negativeRules) = ruleGenerator.generate(2)
-  val requests: Seq[Request] = requestGenerator.generate(2)
+  val (rules, negativeRules) = ruleGenerator.generate(100)
+  val requests: Seq[Request] = requestGenerator.generate(10)
 
   implicit val ctx: EvaluationContext =
     EvaluationContext(rules, negativeRules)

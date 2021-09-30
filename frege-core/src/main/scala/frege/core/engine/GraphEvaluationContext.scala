@@ -1,9 +1,14 @@
 package frege.core.engine
 
 import frege._
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.ints.{
+  Int2ObjectMap,
+  Int2ObjectMaps,
+  Int2ObjectOpenHashMap
+}
 import it.unimi.dsi.fastutil.objects.{
   Object2ObjectMap,
+  Object2ObjectMaps,
   Object2ObjectOpenHashMap
 }
 
@@ -14,7 +19,7 @@ case class GraphMetadata(
 )
 case class GraphEvaluationContext(
     graph: Object2ObjectMap[String, Object2ObjectMap[Field, RuleResult]],
-    negativeRuleMap: Int2ObjectOpenHashMap[Set[Int]],
+    negativeRuleMap: Int2ObjectMap[Set[Int]],
     metadata: GraphMetadata
 )
 
@@ -95,7 +100,12 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
         }
         .toMap
     )
-    GraphEvaluationContext(graph, negativeRuleMap, graphMetadata)
+    // make context immutable
+    GraphEvaluationContext(
+      Object2ObjectMaps.synchronize(graph),
+      Int2ObjectMaps.synchronize(negativeRuleMap),
+      graphMetadata
+    )
   }
 
 }
