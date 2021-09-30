@@ -1,20 +1,18 @@
 package ninja.scala.frege.core.engine
 
-import it.unimi.dsi.fastutil.booleans.BooleanArrays
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import it.unimi.dsi.fastutil.objects.{
   Object2ObjectMap,
   Object2ObjectOpenHashMap
 }
-import ninja.scala.frege.{Id, SimpleRule}
+import ninja.scala.frege.Id
 
-import java.util.function.IntConsumer
+import scala.collection.mutable
 
 class RuleResult {
-  protected val positive: Object2ObjectMap[Id, (Int, Int)] =
-    new Object2ObjectOpenHashMap[Id, (Int, Int)]()
-  protected val negative: Object2ObjectMap[Id, (Int, Int)] =
-    new Object2ObjectOpenHashMap[Id, (Int, Int)]()
+  protected val positive: Object2ObjectMap[Id, Result] =
+    new Object2ObjectOpenHashMap[Id, Result]()
+  protected val negative: Object2ObjectMap[Id, Result] =
+    new Object2ObjectOpenHashMap[Id, Result]()
 
   /*
   0 0 0 1 1
@@ -24,59 +22,42 @@ class RuleResult {
   1 1 1 1
    */
   def add(that: RuleResult): Unit = {
-    that.positive.forEach { case (id, (newIdx, target)) =>
-      if (newIdx != target) {
-        if (this.positive.containsKey(id)) {
-          val (seenIdx, _) = this.positive.get(id)
-          addPositive(id, newIdx | seenIdx, target)
-        } else addPositive(id, newIdx, target)
-      }
+    that.positive.forEach { case (id, thatResult) =>
+      if (this.positive.containsKey(id)) {
+        val thisResult = this.positive.get(id)
+        addPositive(id, thisResult add thatResult)
+      } else addPositive(id, thatResult)
     }
-    that.negative.forEach { case (id, (newIdx, target)) =>
-      if (newIdx != target) {
-        if (this.negative.containsKey(id)) {
-          val (seenIdx, _) = this.negative.get(id)
-          addNegative(id, newIdx | seenIdx, target)
-        } else addNegative(id, newIdx, target)
-      }
+    that.negative.forEach { case (id, thatResult) =>
+      if (this.negative.containsKey(id)) {
+        val thisResult = this.negative.get(id)
+        addNegative(id, thisResult add thatResult)
+      } else addNegative(id, thatResult)
     }
   }
 
-  def addPositive(id: Id, index: Int = 0, target: Int = 1): Unit = {
-    positive.put(id, (index, target))
+  def addPositive(id: Id, result: Result): Unit = {
+    positive.put(id, result)
   }
 
-  def addNegative(id: Id, index: Int = 0, target: Int = 1): Unit = {
-    negative.put(id, (index, target))
+  def addNegative(id: Id, result: Result): Unit = {
+    negative.put(id, result)
   }
 
-  def getPositive: IntOpenHashSet = {
-    val set = new IntOpenHashSet()
-    positive.forEach { case (id, (seen, target)) =>
-      if (seen == target) set.add(id)
+  def getApplicable(implicit gtx: GraphEvaluationContext): EvaluationResult = {
+    val applicable: mutable.Builder[Id, Set[Id]] = Set.newBuilder[Id]
+    positive.forEach { case (posId, positiveResult) =>
+      val blockedBy = gtx.negativeRuleMap
+        .get(posId)
+        .collect {
+          case negId if negative.containsKey(negId) =>
+            negative.get(negId)
+        }
+        .reduceOption(Result.semigroup.combine)
+      if (!blockedBy.exists(_.isFail) && positiveResult.isPass)
+        applicable += posId
     }
-    set
-  }
-
-  def getNegative: IntOpenHashSet = {
-    val set = new IntOpenHashSet()
-    negative.forEach { case (id, (seen, target)) =>
-      if (seen == target) set.add(id)
-    }
-    set
-  }
-
-  def getApplicable(implicit ctx: EvaluationContext): Set[Int] = {
-    val builder = Set.newBuilder[Int]
-    val positive = getPositive
-    val negative = getNegative
-    val consumer: IntConsumer = id =>
-      ctx.rules.foreach { case (id, rule: SimpleRule) =>
-        if (!rule.negative.exists(neg => negative.contains(neg.id)))
-          builder += id
-      }
-    positive.forEach(consumer)
-    builder.result()
+    EvaluationResult(applicable.result())
   }
 
   override def toString: String = s"positive: $positive, negative: $negative"

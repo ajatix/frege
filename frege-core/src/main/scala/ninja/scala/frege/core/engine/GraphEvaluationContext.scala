@@ -1,5 +1,6 @@
 package ninja.scala.frege.core.engine
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.{
   Object2ObjectMap,
   Object2ObjectOpenHashMap
@@ -13,6 +14,7 @@ case class GraphMetadata(
 )
 case class GraphEvaluationContext(
     graph: Object2ObjectMap[String, Object2ObjectMap[Field, RuleResult]],
+    negativeRuleMap: Int2ObjectOpenHashMap[Set[Int]],
     metadata: GraphMetadata
 )
 
@@ -24,6 +26,9 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
   val graph: Object2ObjectMap[String, Object2ObjectMap[Field, RuleResult]] =
     new Object2ObjectOpenHashMap[String, Object2ObjectMap[Field, RuleResult]]()
 
+  val negativeRuleMap: Int2ObjectOpenHashMap[Set[Int]] =
+    new Int2ObjectOpenHashMap[Set[Int]]()
+
   def addRules(rules: Map[Id, Rule]): Unit = {
     rules.foreach { case (ruleId, SimpleRule(_, _, _, positive, negative)) =>
       val positiveTarget = (1 << positive.size) - 1
@@ -32,12 +37,17 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
         fences.foreach { fence =>
           val fenceRuleResult =
             featureGraph.getOrDefault(fence.v, new RuleResult())
-          fenceRuleResult.addPositive(ruleId, 1 << idx, positiveTarget)
+          fenceRuleResult.addPositive(
+            ruleId,
+            new Partial(1 << idx, positiveTarget)
+          )
           featureGraph.put(fence.v, fenceRuleResult)
         }
         graph.put(feature.name, featureGraph)
       }
+      val negativeIds = Set.newBuilder[Int]
       negative.foreach { case SimpleRule(id, _, _, positive, _) =>
+        negativeIds += id
         val negativeTarget = (1 << positive.size) - 1
         positive.zipWithIndex.foreach {
           case (Segment(_, feature, fences), idx) =>
@@ -45,12 +55,16 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
             fences.foreach { fence =>
               val fenceRuleResult =
                 featureGraph.getOrDefault(fence.v, new RuleResult())
-              fenceRuleResult.addNegative(id, 1 << idx, negativeTarget)
+              fenceRuleResult.addNegative(
+                id,
+                new Partial(1 << idx, negativeTarget)
+              )
               featureGraph.put(fence.v, fenceRuleResult)
             }
             graph.put(feature.name, featureGraph)
         }
       }
+      negativeRuleMap.put(ruleId, negativeIds.result())
     }
   }
 
@@ -61,7 +75,7 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
       dimensions = Map.empty,
       rules = Map.empty
     )
-    GraphEvaluationContext(graph, graphMetadata)
+    GraphEvaluationContext(graph, negativeRuleMap, graphMetadata)
   }
 
 }

@@ -14,10 +14,7 @@ class StandardEvaluator(implicit ctx: EvaluationContext) extends Evaluator {
   }
 }
 
-class GraphEvaluator(implicit
-    ctx: EvaluationContext,
-    gtx: GraphEvaluationContext
-) extends Evaluator {
+class GraphEvaluator(implicit gtx: GraphEvaluationContext) extends Evaluator {
 
   override def eval(request: Request): EvaluationResult = {
     val ruleResult = new RuleResult()
@@ -26,6 +23,6 @@ class GraphEvaluator(implicit
         if (v.containsKey(field)) ruleResult.add(v.get(field))
       }
     })
-    EvaluationResult(ruleResult.getApplicable)
+    ruleResult.getApplicable
   }
 }
