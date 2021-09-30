@@ -1,3 +1,3 @@
-package ninja.scala.frege
+package frege
 
 final case class Feature(id: Id, name: Name) extends HasId with HasName

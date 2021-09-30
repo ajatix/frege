@@ -1,10 +1,10 @@
-package ninja.scala.frege.core.engine
+package frege.core.engine
 
 import it.unimi.dsi.fastutil.objects.{
   Object2ObjectMap,
   Object2ObjectOpenHashMap
 }
-import ninja.scala.frege.Id
+import frege.Id
 
 import scala.collection.mutable
 

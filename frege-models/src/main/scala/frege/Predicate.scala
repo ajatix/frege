@@ -1,4 +1,4 @@
-package ninja.scala.frege
+package frege
 
 trait Predicate[T <: Field] {
   def eval(req: T, fence: Fence): Boolean

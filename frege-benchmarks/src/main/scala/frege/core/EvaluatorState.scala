@@ -1,8 +1,8 @@
 package frege.core
 
 import frege.generators.{RequestGenerator, RuleGenerator}
-import ninja.scala.frege.Request
-import ninja.scala.frege.core.engine._
+import frege.Request
+import frege.core.engine._
 import org.openjdk.jmh.annotations.{Scope, State}
 
 @State(Scope.Benchmark)

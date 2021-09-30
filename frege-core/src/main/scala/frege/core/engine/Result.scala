@@ -1,4 +1,4 @@
-package ninja.scala.frege.core.engine
+package frege.core.engine
 
 import cats.kernel.Semigroup
 

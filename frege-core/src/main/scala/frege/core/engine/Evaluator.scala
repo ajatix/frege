@@ -1,6 +1,6 @@
-package ninja.scala.frege.core.engine
+package frege.core.engine
 
-import ninja.scala.frege.Request
+import frege.Request
 
 sealed trait Evaluator {
   def eval(request: Request): EvaluationResult

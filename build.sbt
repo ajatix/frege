@@ -1,8 +1,8 @@
 name := "frege"
 
-version := "0.1"
+version in Global := "0.1"
 
-scalaVersion := "2.13.6"
+scalaVersion in Global := "2.13.6"
 
 lazy val models = project.in(file("frege-models"))
 

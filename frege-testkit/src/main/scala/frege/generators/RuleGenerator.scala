@@ -1,6 +1,6 @@
 package frege.generators
 
-import ninja.scala.frege._
+import frege._
 import org.scalacheck.Gen
 import org.scalacheck.rng.Seed
 

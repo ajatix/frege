@@ -1,11 +1,11 @@
-package ninja.scala.frege.core.engine
+package frege.core.engine
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.{
   Object2ObjectMap,
   Object2ObjectOpenHashMap
 }
-import ninja.scala.frege._
+import frege._
 
 case class GraphMetadata(
     numFeatures: Int,

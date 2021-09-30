@@ -1,7 +1,7 @@
 package frege.generators
 
-import ninja.scala.frege.syntax._
-import ninja.scala.frege.{Field, Request}
+import frege.syntax._
+import frege.{Field, Request}
 import org.scalacheck.Gen
 import org.scalacheck.rng.Seed
 

@@ -1,8 +1,8 @@
 package frege.core
 
 import frege.generators.{RequestGenerator, RuleGenerator}
-import ninja.scala.frege.Request
-import ninja.scala.frege.core.engine._
+import frege.Request
+import frege.core.engine._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -10,11 +10,13 @@ class EvaluatorSpec extends AnyFlatSpec with Matchers {
 
   behavior of "evaluator"
 
+  private val debug: Boolean = true
+
   val requestGenerator = new RequestGenerator()
   val ruleGenerator = new RuleGenerator(0.3)
 
-  val (rules, negativeRules) = ruleGenerator.generate(100)
-  val requests: Seq[Request] = requestGenerator.generate(10)
+  val (rules, negativeRules) = ruleGenerator.generate(2)
+  val requests: Seq[Request] = requestGenerator.generate(1)
 
   implicit val ctx: EvaluationContext =
     EvaluationContext(rules, negativeRules)
@@ -22,6 +24,23 @@ class EvaluatorSpec extends AnyFlatSpec with Matchers {
     new GraphEvaluationContextBuilder().build()
   val standardEvaluator = new StandardEvaluator()
   val graphEvaluator = new GraphEvaluator()
+
+  if (debug) {
+    println("[rules]")
+    rules.foreach(println)
+
+    println("[graph]")
+    println(gtx.graph)
+
+    println("[graph negativeRuleMap]")
+    println(gtx.negativeRuleMap)
+
+    println("[graph metadata]")
+    println(gtx.metadata)
+
+    println("[requests]")
+    requests.foreach(println)
+  }
 
   it should "compute standard" in {
     val standardResponse =
@@ -32,6 +51,14 @@ class EvaluatorSpec extends AnyFlatSpec with Matchers {
       requests
         .map(request => request -> graphEvaluator.eval(request).applicable)
         .toMap
+
+    if (debug) {
+      println("[standard response]")
+      println(standardResponse)
+
+      println("[graph response]")
+      println(graphResponse)
+    }
 
     graphResponse shouldEqual standardResponse
   }
