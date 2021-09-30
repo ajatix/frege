@@ -10,7 +10,7 @@ sealed trait Result {
   def isFail: Boolean
 }
 
-case object Pass extends Result {
+private case object Pass extends Result {
   final val isPass: Boolean = true
   final val isFail: Boolean = false
 
@@ -20,14 +20,14 @@ case object Pass extends Result {
   }
 }
 
-case object Fail extends Result {
+private case object Fail extends Result {
   final val isPass: Boolean = false
   final val isFail: Boolean = true
 
   override def add(that: Result): Result = this
 }
 
-case class Partial(hit: Int, required: Int) extends Result {
+private case class Partial(hit: Int, required: Int) extends Result {
   final val isPass: Boolean = false
   final val isFail: Boolean = false
 
@@ -39,12 +39,12 @@ case class Partial(hit: Int, required: Int) extends Result {
       else copy(hit = hit | thatHit)
   }
 }
-object Partial {
-  @tailrec
-  def apply(hit: Int, required: Int): Result =
-    if (hit == required) Pass else Partial(hit, required)
-}
 
 object Result {
   implicit val semigroup: Semigroup[Result] = (x: Result, y: Result) => x add y
+
+  val pass: Result = Pass
+  val fail: Result = Fail
+  def partial(hit: Int, required: Int): Result =
+    if (hit == required) Pass else Partial(hit, required)
 }

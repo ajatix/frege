@@ -39,7 +39,7 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
             featureGraph.getOrDefault(fence.v, new RuleResult())
           fenceRuleResult.addPositive(
             ruleId,
-            Partial(1 << idx, positiveTarget)
+            Result.partial(1 << idx, positiveTarget)
           )
           featureGraph.put(fence.v, fenceRuleResult)
         }
@@ -57,7 +57,7 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
                 featureGraph.getOrDefault(fence.v, new RuleResult())
               fenceRuleResult.addNegative(
                 id,
-                Partial(1 << idx, negativeTarget)
+                Result.partial(1 << idx, negativeTarget)
               )
               featureGraph.put(fence.v, fenceRuleResult)
             }
