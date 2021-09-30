@@ -71,15 +71,17 @@ class RuleResult {
     val consumer: Consumer[Object2ObjectMap.Entry[Id, Result]] = entry => {
       val posId = entry.getKey
       val positiveResult = entry.getValue
-      val blockedBy = gtx
-        .negativeRuleMap(posId)
-        .collect {
-          case negId if negative.containsKey(negId) =>
-            negative.get(negId)
+      if (positiveResult.isPass) {
+        val it = gtx.negativeRuleMap(posId).iterator()
+        var continue: Boolean = true
+        while (continue && it.hasNext) {
+          val next = it.nextInt()
+          if (negative.containsKey(next)) {
+            if (negative.get(next).isPass) continue = false
+          }
         }
-        .reduceOption(Result.semigroup.combine)
-      if (!blockedBy.exists(_.isPass) && positiveResult.isPass)
-        applicable += posId
+        if (continue) applicable += posId
+      }
     }
     Object2ObjectMaps.fastForEach(positive, consumer)
     EvaluationResult(applicable.result())

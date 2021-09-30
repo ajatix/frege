@@ -1,11 +1,7 @@
 package frege.core.engine
 
 import frege._
-import it.unimi.dsi.fastutil.ints.{
-  Int2ObjectMap,
-  Int2ObjectMaps,
-  Int2ObjectOpenHashMap
-}
+import it.unimi.dsi.fastutil.ints._
 import it.unimi.dsi.fastutil.objects.{
   Object2ObjectMap,
   Object2ObjectMaps,
@@ -19,7 +15,7 @@ case class GraphMetadata(
 )
 case class GraphEvaluationContext(
     graph: Object2ObjectMap[String, Object2ObjectMap[Field, RuleResult]],
-    negativeRuleMap: Int2ObjectMap[Set[Int]],
+    negativeRuleMap: Int2ObjectMap[IntSet],
     metadata: GraphMetadata
 )
 
@@ -31,8 +27,8 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
   val graph: Object2ObjectMap[String, Object2ObjectMap[Field, RuleResult]] =
     new Object2ObjectOpenHashMap[String, Object2ObjectMap[Field, RuleResult]]()
 
-  val negativeRuleMap: Int2ObjectOpenHashMap[Set[Int]] =
-    new Int2ObjectOpenHashMap[Set[Int]]()
+  val negativeRuleMap: Int2ObjectOpenHashMap[IntSet] =
+    new Int2ObjectOpenHashMap[IntSet]()
 
   def addRules(rules: Map[Id, Rule]): Unit = {
     rules.foreach { case (ruleId, SimpleRule(_, _, _, positive, negative)) =>
@@ -50,9 +46,9 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
         }
         graph.put(feature.name, featureGraph)
       }
-      val negativeIds = Set.newBuilder[Int]
+      val negativeIds = new IntOpenHashSet()
       negative.foreach { case SimpleRule(id, _, _, positive, _) =>
-        negativeIds += id
+        negativeIds.add(id)
         val negativeTarget = (1 << positive.size) - 1
         positive.zipWithIndex.foreach {
           case (Segment(_, feature, fences), idx) =>
@@ -69,7 +65,7 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
             graph.put(feature.name, featureGraph)
         }
       }
-      negativeRuleMap.put(ruleId, negativeIds.result())
+      negativeRuleMap.put(ruleId, IntSets.synchronize(negativeIds))
     }
   }
 
