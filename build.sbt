@@ -4,8 +4,6 @@ version := "0.1"
 
 scalaVersion := "2.13.6"
 
-idePackagePrefix := Some("ninja.scala.frege")
-
 lazy val models = project.in(file("frege-models"))
 
 lazy val testkit =
@@ -28,7 +26,8 @@ lazy val core = project
   .aggregate(models, commons)
   .settings(
     libraryDependencies ++= Seq(
-      "it.unimi.dsi" % "fastutil" % "8.5.6"
+      "it.unimi.dsi" % "fastutil" % "8.5.6",
+      "org.typelevel" %% "cats-core" % "2.6.1"
     )
   )
 
