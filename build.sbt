@@ -8,11 +8,23 @@ idePackagePrefix := Some("ninja.scala.frege")
 
 lazy val models = project.in(file("frege-models"))
 
+lazy val testkit =
+  project
+    .in(file("frege-testkit"))
+    .dependsOn(models)
+    .aggregate(models)
+    .settings(
+      libraryDependencies ++= Seq(
+        "org.scalatest" %% "scalatest" % "3.2.10",
+        "org.scalacheck" %% "scalacheck" % "1.15.4"
+      )
+    )
+
 lazy val commons = project.in(file("frege-commons"))
 
 lazy val core = project
   .in(file("frege-core"))
-  .dependsOn(models, commons)
+  .dependsOn(models, commons, testkit % "compile->test")
   .aggregate(models, commons)
   .settings(
     libraryDependencies ++= Seq(
@@ -26,6 +38,6 @@ lazy val client =
 lazy val benchmarks =
   project
     .in(file("frege-benchmarks"))
-    .dependsOn(core)
-    .aggregate(core)
+    .dependsOn(core, testkit)
+    .aggregate(core, testkit)
     .enablePlugins(JmhPlugin)

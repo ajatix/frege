@@ -27,4 +27,15 @@ final case class SimpleRule(
 
   override def eval(req: Request): Boolean =
     !evalNegative(req) && evalPositive(req)
+
+  override def toString: Name =
+    s"""[meta]
+       |name: $name
+       |id: $id
+       |action: $action
+       |[positive]
+       |${positive.mkString("\n")}
+       |[negative]
+       |${negative.mkString("\n")}
+       |""".stripMargin
 }
