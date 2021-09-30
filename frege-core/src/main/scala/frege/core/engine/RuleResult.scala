@@ -1,10 +1,10 @@
 package frege.core.engine
 
+import frege.Id
 import it.unimi.dsi.fastutil.objects.{
   Object2ObjectMap,
   Object2ObjectOpenHashMap
 }
-import frege.Id
 
 import scala.collection.mutable
 
@@ -13,6 +13,18 @@ class RuleResult {
     new Object2ObjectOpenHashMap[Id, Result]()
   protected val negative: Object2ObjectMap[Id, Result] =
     new Object2ObjectOpenHashMap[Id, Result]()
+
+  def all(): Set[Int] = {
+    val pos = Set.newBuilder[Int]
+    val neg = Set.newBuilder[Int]
+    positive.keySet().forEach { id =>
+      pos += id
+    }
+    negative.keySet().forEach { id =>
+      neg += id
+    }
+    pos.result() diff neg.result()
+  }
 
   /*
   0 0 0 1 1

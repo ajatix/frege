@@ -15,7 +15,7 @@ class EvaluatorSpec extends AnyFlatSpec with Matchers {
   val requestGenerator = new RequestGenerator()
   val ruleGenerator = new RuleGenerator(0.3)
 
-  val (rules, negativeRules) = ruleGenerator.generate(2)
+  val (rules, negativeRules) = ruleGenerator.generate(5)
   val requests: Seq[Request] = requestGenerator.generate(1)
 
   implicit val ctx: EvaluationContext =
@@ -30,7 +30,12 @@ class EvaluatorSpec extends AnyFlatSpec with Matchers {
     rules.foreach(println)
 
     println("[graph]")
-    println(gtx.graph)
+    gtx.graph.forEach { (feature, nodes) =>
+      println(feature)
+      nodes.forEach { (node, result) =>
+        println(node, result)
+      }
+    }
 
     println("[graph negativeRuleMap]")
     println(gtx.negativeRuleMap)

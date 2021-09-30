@@ -1,11 +1,11 @@
 package frege.core.engine
 
+import frege._
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.{
   Object2ObjectMap,
   Object2ObjectOpenHashMap
 }
-import frege._
 
 case class GraphMetadata(
     numFeatures: Int,
@@ -70,10 +70,30 @@ class GraphEvaluationContextBuilder(implicit ctx: EvaluationContext) {
 
   def build(): GraphEvaluationContext = {
     addRules(ctx.rules)
+    val dimensions = Seq.newBuilder[(String, Int)]
+    val rules = Seq.newBuilder[(String, Int)]
+    graph.forEach { (feature, nodes) =>
+      val applicable = Set.newBuilder[Int]
+      dimensions += feature -> nodes.size()
+      nodes.forEach { (_, result) =>
+        applicable ++= result.all()
+      }
+      rules += feature -> applicable.result().size
+    }
     val graphMetadata = GraphMetadata(
-      numFeatures = graph.size,
-      dimensions = Map.empty,
-      rules = Map.empty
+      numFeatures = graph.size(),
+      dimensions = dimensions
+        .result()
+        .sortBy { case (feature, numDimensions) =>
+          (-1 * numDimensions, feature)
+        }
+        .toMap,
+      rules = rules
+        .result()
+        .sortBy { case (feature, numRules) =>
+          (-1 * numRules, feature)
+        }
+        .toMap
     )
     GraphEvaluationContext(graph, negativeRuleMap, graphMetadata)
   }
