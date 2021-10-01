@@ -22,6 +22,6 @@ Add your new validator to [EvaluatorSpec.scala](frege-core/src/test/scala/frege/
 ### running benchmarks
 Add your new validator to [benchmarks](frege-benchmarks/src/main/scala/frege/core)
 ```
-sbt clean benchmarks/"jmh:run -i 1 -wi 1 -f1 -t1 .*EvaluatorBench.*"
+sbt clean benchmarks/"jmh:run -i 3 -wi 3 -f1 -t1 .*EvaluatorBench.*"
 ```
 To see the current [benchmark results](BENCHMARKS.md)
