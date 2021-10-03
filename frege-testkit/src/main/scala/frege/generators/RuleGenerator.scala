@@ -31,7 +31,7 @@ object RuleGenerator {
   def genFence(feature: String): Gen[Fence] = for {
     request <- RequestGenerator.generator
     field <- Gen.oneOf(request.get(feature))
-  } yield Fence(field)
+  } yield SingletonFence(field)
   def genSegment(id: Id): Gen[Segment] = for {
     feature <- Gen.oneOf("traffic", "origin", "payment", "cid", "logged_in")
     fences <- Gen.nonEmptyListOf(genFence(feature)).map(_.toSet)

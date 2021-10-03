@@ -3,6 +3,8 @@ package frege
 sealed trait Field {
   type T
   def v: T
+
+  override def toString: String = v.toString
 }
 
 final case class StringField(v: String) extends Field {

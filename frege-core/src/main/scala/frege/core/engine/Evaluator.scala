@@ -1,6 +1,6 @@
 package frege.core.engine
 
-import frege.{Field, Request}
+import frege.{Fence, Request}
 import it.unimi.dsi.fastutil.objects.{Object2ObjectMap, Object2ObjectMaps}
 
 import java.util.function.Consumer
@@ -22,11 +22,17 @@ class GraphEvaluator(implicit gtx: GraphEvaluationContext) extends Evaluator {
   override def eval(request: Request): EvaluationResult = {
     val ruleResult = new RuleResult()
     val consumer: Consumer[
-      Object2ObjectMap.Entry[String, Object2ObjectMap[Field, RuleResult]]
+      Object2ObjectMap.Entry[String, Object2ObjectMap[Fence, RuleResult]]
     ] = entry => {
       request.get(entry.getKey).foreach { field =>
-        val fieldMap: Object2ObjectMap[Field, RuleResult] = entry.getValue
-        if (fieldMap.containsKey(field)) ruleResult.add(fieldMap.get(field))
+        val fenceMap: Object2ObjectMap[Fence, RuleResult] = entry.getValue
+        val fenceMapIterator = fenceMap.entrySet().iterator()
+        while (fenceMapIterator.hasNext) {
+          val nextEntry = fenceMapIterator.next()
+          if (nextEntry.getKey.contains(field)) {
+            ruleResult.add(nextEntry.getValue)
+          }
+        }
       }
     }
     Object2ObjectMaps.fastForEach(gtx.graph, consumer)

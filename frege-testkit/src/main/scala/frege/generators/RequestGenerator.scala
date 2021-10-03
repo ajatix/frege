@@ -10,14 +10,16 @@ case class SimpleRequest(
     payment: Int,
     loggedIn: Boolean,
     traffic: String,
-    cid: Int
+    cid: Int,
+    margin_percent: Int
 ) extends Request {
   override def get(feature: String): Option[Field] = feature match {
-    case "origin"    => Some(origin)
-    case "payment"   => Some(payment)
-    case "logged_in" => Some(loggedIn)
-    case "traffic"   => Some(traffic)
-    case "cid"       => Some(cid)
+    case "origin"         => Some(origin)
+    case "payment"        => Some(payment)
+    case "logged_in"      => Some(loggedIn)
+    case "traffic"        => Some(traffic)
+    case "cid"            => Some(cid)
+    case "margin_percent" => Some(margin_percent)
   }
 }
 
@@ -43,11 +45,13 @@ object RequestGenerator {
     loggedIn <- Gen.oneOf(true, false)
     traffic <- Gen.oneOf("direct", "mse")
     cid <- Gen.oneOf(1, 2, 3, 4, 5)
+    margin_percent <- Gen.choose(0, 25)
   } yield SimpleRequest(
     origin = origin,
     payment = payment,
     loggedIn = loggedIn,
     traffic = traffic,
-    cid = cid
+    cid = cid,
+    margin_percent = margin_percent
   )
 }
